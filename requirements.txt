@@ -1,2 +1,5 @@
+requests
+simplejson
+jsonpickle
 python-telegram-bot
 pickledb
