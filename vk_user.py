@@ -1,22 +1,41 @@
 from vk import Vk
+from db import db
+import time
+import jsonpickle
 
 """
 Vk user
 """
 
 class Vk_user():
-    def __init__(self, uid, first_name, last_name, photo_200):
+    def __init__(self, uid, first_name, last_name,
+            photo_200, created_at=time.time()):
         self.uid = uid
         self.first_name = first_name
         self.last_name = last_name
         self.photo = photo_200
+        self.created_at = created_at
+
+    def db_key(self):
+        return Vk_user.DB_KEY(self.uid)
+
+    @staticmethod
+    def DB_KEY(uid):
+        return 'VK-USER-' + str(uid)
 
     def get_name(self):
         return self.first_name + ' ' + self.last_name
 
+    def outdated(self):
+        one_week = 60*24*7
+        return self.created_at < time.time() - one_week
+
+    def to_json(self):
+        return jsonpickle.encode(self)
+
     @staticmethod
-    def from_token(access_token):
-        return Vk_user.fetch_current_user(access_token)
+    def from_json(json_str):
+        return jsonpickle.decode(json_str)
 
     @staticmethod
     def from_api(token, params):
@@ -27,7 +46,9 @@ class Vk_user():
         if len(users) == 0:
             return None
 
-        return Vk_user(**users[0])
+        user = Vk_user(**users[0])
+        db.set(user.db_key(), user.to_json())
+        return user
 
     @staticmethod
     def fetch_current_user(token):
@@ -36,6 +57,12 @@ class Vk_user():
 
     @staticmethod
     def fetch_user(token, user_id):
+        user_json = db.get(Vk_user.DB_KEY(user_id))
+        if user_json != None:
+            user = Vk_user.from_json(user_json)
+            if not user.outdated:
+                return user
+
         params = {'user_ids':user_id, 'fields':'photo_200'}
         return Vk_user.from_api(token, params)
 

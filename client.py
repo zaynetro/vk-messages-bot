@@ -24,7 +24,7 @@ class Client:
     def load_vk_user(self, vk_token):
         self.vk_token = vk_token
         if self.vk_user == None:
-            user = Vk_user.from_token(vk_token)
+            user = Vk_user.fetch_current_user(vk_token)
             if user == None:
                 user = Vk_user.empty()
             self.vk_user = user
