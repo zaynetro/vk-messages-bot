@@ -4,7 +4,7 @@ Poller class (long polls vk api for new message events)
 
 from threading import Thread
 import requests
-from Queue import Queue
+from queue import Queue
 from vk import LongPollServer
 from telegram.dispatcher import run_async
 
