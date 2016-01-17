@@ -2,6 +2,7 @@ import time
 import jsonpickle
 from vk_user import Vk_user
 from db import db
+import re
 
 """
 Bot client
@@ -45,6 +46,9 @@ class Client:
         all = db.getall()
         clients = dict()
         for client_key in all:
+            if not re.match('Client-.+', client_key):
+                continue
+
             client_json = db.get(client_key)
             client = Client.from_json(client_json)
             clients[client.chat_id] = client
