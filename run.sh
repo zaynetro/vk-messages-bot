@@ -7,4 +7,4 @@ set -e
 reset_db=$1
 
 source ./set_env.sh
-python main.py $reset_db
+python src/main.py $reset_db
