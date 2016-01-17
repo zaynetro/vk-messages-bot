@@ -1,0 +1,8 @@
+# Ignore database files
+*.db
+
+# Ignore compiled python files
+*.pyc
+
+# Ignore environment files (api tokens, etc..)
+set_env.sh
