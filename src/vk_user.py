@@ -21,6 +21,9 @@ class Vk_user():
         self.photo = photo_200
         self.created_at = created_at
 
+    def __hash__(self):
+        return self.uid
+
     def db_key(self):
         return Vk_user.DB_KEY(self.uid)
 
@@ -33,6 +36,10 @@ class Vk_user():
 
     def get_name(self):
         return self.first_name + ' ' + self.last_name
+
+    def send_message(self, token, message):
+        params = {'user_id': self.uid, 'message':message}
+        message_id = Vk.api('messages.send', token, params)
 
     def outdated(self):
         one_week = 60*24*7
@@ -49,10 +56,10 @@ class Vk_user():
     def from_api(token, params):
         users = Vk.api('users.get', token, params)
         if users == None:
-            return None
+            return Vk_user()
 
         if len(users) == 0:
-            return None
+            return Vk_user()
 
         user = Vk_user(**users[0])
         db.set(user.db_key(), user.to_json())

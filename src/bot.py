@@ -1,7 +1,7 @@
 from vk import Vk
 from vk_user import Vk_user
 from constants import action, message
-from telegram import Updater
+from telegram import Updater, ReplyKeyboardMarkup
 import logging
 from client import Client
 from telegram.dispatcher import run_async
@@ -44,6 +44,7 @@ class Bot:
         dispatcher = self.updater.dispatcher
         dispatcher.addTelegramCommandHandler('start', self.start)
         dispatcher.addTelegramCommandHandler('whoami', self.whoami)
+        dispatcher.addTelegramCommandHandler('reply', self.reply)
         dispatcher.addErrorHandler(self.error)
         dispatcher.addUnknownTelegramCommandHandler(self.unknown)
         dispatcher.addTelegramMessageHandler(self.on_message)
@@ -71,6 +72,20 @@ class Bot:
         client = self.clients[chat_id]
         self.send(bot, update, message.WHOAMI(client.vk_user.get_name()))
 
+    def reply(self, bot, update):
+        chat_id = update.message.chat_id
+        if not chat_id in self.clients:
+            return
+
+        client = self.clients[chat_id]
+        client.next_action = action.RECEPIENT
+        reply_markup = ReplyKeyboardMarkup(client.reply_markup(),
+                                           one_time_keyboard=True,
+                                           resize_keyboard=True)
+        bot.sendMessage(chat_id=chat_id,
+                        text="Select receiver:",
+                        reply_markup=reply_markup)
+
     def error(self, bot, update, error):
         logger.warn('Update "%s" caused error "%s"' % (update, error))
 
@@ -85,6 +100,10 @@ class Bot:
 
         if client.next_action == action.ACCESS_TOKEN:
             return self.on_token_message(bot, update, client)
+        elif client.next_action == action.RECEPIENT:
+            return self.on_recepient_message(bot, update, client)
+        elif client.next_action == action.MESSAGE:
+            return self.on_typed_message(bot, update, client)
 
         self.echo(bot, update)
 
@@ -94,6 +113,15 @@ class Bot:
         client.next_action = action.NOTHING
         self.add_poll_server(client)
         self.send(bot, update, message.TOKEN_SAVED(name))
+
+    def on_recepient_message(self, bot, update, client):
+        client.next_action = action.MESSAGE
+        client.expect_message_to(update.message.text)
+        self.send(bot, update, message.TYPE_MESSAGE)
+
+    def on_typed_message(self, bot, update, client):
+        client.next_action = action.NOTHING
+        client.send_message(update.message.text)
 
     @run_async
     def add_poll_server(self, client):
@@ -130,8 +158,14 @@ class Bot:
 
         client = self.clients[chat_id]
         client.last_used_server = server
+        flags = update[2]
         from_id = update[3]
         text = update[6]
+        if flags & 2 == 2:
+            # Skip when message is outgoing
+            return
+
         user = Vk_user.fetch_user(client.vk_token, from_id)
+        client.add_interaction_with(user)
         self.updater.bot.sendMessage(chat_id=chat_id,
                 text=message.NEW_MESSAGE(user.get_name(), text))

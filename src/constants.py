@@ -18,6 +18,14 @@ class _Action():
     def ACCESS_TOKEN():
         return 'ACCESS_TOKEN'
 
+    @constant
+    def RECEPIENT():
+        return 'RECEPIENT'
+
+    @constant
+    def MESSAGE():
+        return 'MESSAGE'
+
 action = _Action()
 
 class _Message():
@@ -52,5 +60,9 @@ class _Message():
     @staticmethod
     def WHOAMI(name):
         return 'You are ' + name
+
+    @constant
+    def TYPE_MESSAGE():
+        return 'Type your message:'
 
 message = _Message()
