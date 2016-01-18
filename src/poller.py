@@ -30,7 +30,7 @@ class Poller():
                 server, updates = self.poll(server)
                 print 'Poll resulted in ' + str(server) + ', ' + str(updates)
                 self.add(server)
-                self.exec_cb(updates, server.chat_id)
+                self.exec_cb(updates=updates, server=server)
 
         print 'Exit _run'
 
@@ -38,8 +38,8 @@ class Poller():
         self.is_running = False
 
     @run_async
-    def exec_cb(self, updates, chat_id):
-        self.cb(updates, chat_id)
+    def exec_cb(self, updates, server):
+        self.cb(updates=updates, server=server)
 
     @staticmethod
     def noop():

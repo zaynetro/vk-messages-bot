@@ -8,8 +8,13 @@ Vk user
 """
 
 class Vk_user():
-    def __init__(self, uid, first_name, last_name,
-            photo_200, created_at=time.time()):
+    def __init__(self,
+                 uid=None,
+                 first_name='Unresolved',
+                 last_name='Name',
+                 photo_200=None,
+                 created_at=time.time()):
+
         self.uid = uid
         self.first_name = first_name
         self.last_name = last_name
@@ -22,6 +27,9 @@ class Vk_user():
     @staticmethod
     def DB_KEY(uid):
         return 'VK-USER-' + str(uid)
+
+    def should_fetch(self):
+        return self.uid == None or self.outdated()
 
     def get_name(self):
         return self.first_name + ' ' + self.last_name
@@ -65,7 +73,3 @@ class Vk_user():
 
         params = {'user_ids':user_id, 'fields':'photo_200'}
         return Vk_user.from_api(token, params)
-
-    @staticmethod
-    def empty():
-        return Vk_user(0, 'Unresolved', 'Name', '')

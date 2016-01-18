@@ -4,7 +4,6 @@ Main application file
 
 import os
 import sys
-from poller import Poller
 from bot import Bot
 from db import db
 
@@ -20,8 +19,8 @@ def main():
             db.deldb()
             db.dump()
 
-    poller = Poller()
-    bot = Bot(poller, telegram_token, vk_client_id)
+    bot = Bot(token=telegram_token,
+              vk_client_id=vk_client_id)
     bot.run()
 
 if __name__ == '__main__':
