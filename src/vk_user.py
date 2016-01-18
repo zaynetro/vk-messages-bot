@@ -24,6 +24,9 @@ class Vk_user():
     def __hash__(self):
         return self.uid
 
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
     def db_key(self):
         return Vk_user.DB_KEY(self.uid)
 
