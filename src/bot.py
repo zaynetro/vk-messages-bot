@@ -1,7 +1,7 @@
 from vk import Vk
 from vk_user import Vk_user
 from constants import action, message
-from telegram import Updater, ReplyKeyboardMarkup
+from telegram import Updater, ParseMode, ReplyKeyboardHide, ReplyKeyboardMarkup
 import logging
 from client import Client
 from telegram.dispatcher import run_async
@@ -44,20 +44,20 @@ class Bot:
         dispatcher = self.updater.dispatcher
         dispatcher.addTelegramCommandHandler('start', self.start)
         dispatcher.addTelegramCommandHandler('whoami', self.whoami)
-        dispatcher.addTelegramCommandHandler('reply', self.reply)
+        dispatcher.addTelegramCommandHandler('pick', self.pick)
+        dispatcher.addTelegramCommandHandler('details', self.details)
         dispatcher.addErrorHandler(self.error)
         dispatcher.addUnknownTelegramCommandHandler(self.unknown)
         dispatcher.addTelegramMessageHandler(self.on_message)
-
-    def send(self, bot, update, text):
-        bot.sendMessage(chat_id=update.message.chat_id, text=text)
 
     def start(self, bot, update):
         chat_id = update.message.chat_id
         auth_url = self.vk.get_auth_url()
         # Send first info messages
-        self.send(bot, update, message.WELCOME(auth_url))
-        self.send(bot, update, message.COPY_TOKEN)
+        bot.sendMessage(chat_id=chat_id,
+                text=message.WELCOME(auth_url),
+                reply_markup=ReplyKeyboardHide())
+        bot.sendMessage(chat_id=chat_id, text=message.COPY_TOKEN)
         # Create new client
         client = Client(next_action=action.ACCESS_TOKEN,
                         chat_id=chat_id)
@@ -70,21 +70,46 @@ class Bot:
             return
 
         client = self.clients[chat_id]
-        self.send(bot, update, message.WHOAMI(client.vk_user.get_name()))
+        bot.sendMessage(chat_id=chat_id,
+            text=message.WHOAMI(client.vk_user.get_name()),
+            reply_markup=Bot.keyboard(client.keyboard_markup()))
 
-    def reply(self, bot, update):
+    def pick(self, bot, update):
         chat_id = update.message.chat_id
         if not chat_id in self.clients:
+            self.start(bot, update)
             return
 
         client = self.clients[chat_id]
-        client.next_action = action.RECEPIENT
-        reply_markup = ReplyKeyboardMarkup(client.reply_markup(),
-                                           one_time_keyboard=True,
-                                           resize_keyboard=True)
+        client.seen_now()
+        client.next_action = action.MESSAGE
+        recepient = update.message.text[6:]
+        client.expect_message_to(recepient)
         bot.sendMessage(chat_id=chat_id,
-                        text="Select receiver:",
-                        reply_markup=reply_markup)
+                text=message.TYPE_MESSAGE(recepient),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=ReplyKeyboardHide())
+
+    def details(self, bot, update):
+        chat_id = update.message.chat_id
+        if not chat_id in self.clients:
+            self.start(bot, update)
+            return
+
+        client = self.clients[chat_id]
+        client.seen_now()
+        client.next_action = action.NOTHING
+        user = client.next_recepient
+        if user == None:
+            return
+
+        if user.photo != None:
+            bot.sendPhoto(chat_id=chat_id, photo=user.photo)
+
+        bot.sendMessage(chat_id=chat_id,
+                text=message.USER_NAME(user.get_name()),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=Bot.keyboard(client.keyboard_markup()))
 
     def error(self, bot, update, error):
         logger.warn('Update "%s" caused error "%s"' % (update, error))
@@ -100,24 +125,19 @@ class Bot:
 
         if client.next_action == action.ACCESS_TOKEN:
             return self.on_token_message(bot, update, client)
-        elif client.next_action == action.RECEPIENT:
-            return self.on_recepient_message(bot, update, client)
         elif client.next_action == action.MESSAGE:
             return self.on_typed_message(bot, update, client)
 
-        self.echo(bot, update)
+        self.echo(update.message.chat_id)
 
     def on_token_message(self, bot, update, client):
         client.load_vk_user(update.message.text)
         name = client.vk_user.get_name()
         client.next_action = action.NOTHING
         self.add_poll_server(client)
-        self.send(bot, update, message.TOKEN_SAVED(name))
-
-    def on_recepient_message(self, bot, update, client):
-        client.next_action = action.MESSAGE
-        client.expect_message_to(update.message.text)
-        self.send(bot, update, message.TYPE_MESSAGE)
+        bot.sendMessage(chat_id=update.message.chat_id,
+                text=message.TOKEN_SAVED(name),
+                reply_markup=Bot.keyboard(client.keyboard_markup()))
 
     def on_typed_message(self, bot, update, client):
         client.next_action = action.NOTHING
@@ -132,11 +152,19 @@ class Bot:
                                              chat_id=client.chat_id)
             self.poller.add(server)
 
-    def echo(self, bot, update):
-        self.send(bot, update, message.ECHO)
+    def echo(self, chat_id):
+        self.updater.bot.sendMessage(chat_id=chat_id, text=message.ECHO)
 
     def unknown(self, bot, update):
-        self.send(bot, update, message.UNKNOWN)
+        bot.sendMessage(chat_id=update.message.chat_id,
+                text=message.UNKNOWN)
+
+    @staticmethod
+    def keyboard(keyboard_markup):
+        return ReplyKeyboardMarkup(
+            keyboard_markup,
+            selective=True,
+            resize_keyboard=True)
 
     def on_update(self, updates, server):
         print str('Updates' + str(updates))
@@ -168,4 +196,6 @@ class Bot:
         user = Vk_user.fetch_user(client.vk_token, from_id)
         client.add_interaction_with(user)
         self.updater.bot.sendMessage(chat_id=chat_id,
-                text=message.NEW_MESSAGE(user.get_name(), text))
+                text=message.NEW_MESSAGE(user.get_name(), text),
+                reply_markup=Bot.keyboard(client.keyboard_markup()),
+                parse_mode=ParseMode.MARKDOWN)

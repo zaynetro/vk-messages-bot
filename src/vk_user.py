@@ -12,13 +12,13 @@ class Vk_user():
                  uid=None,
                  first_name='Unresolved',
                  last_name='Name',
-                 photo_200=None,
+                 photo_400_orig=None,
                  created_at=time.time()):
 
         self.uid = uid
         self.first_name = first_name
         self.last_name = last_name
-        self.photo = photo_200
+        self.photo = photo_400_orig
         self.created_at = created_at
 
     def __hash__(self):
@@ -70,7 +70,7 @@ class Vk_user():
 
     @staticmethod
     def fetch_current_user(token):
-        params = {'fields':'photo_200'}
+        params = {'fields':'photo_400_orig'}
         return Vk_user.from_api(token, params)
 
     @staticmethod
@@ -81,5 +81,5 @@ class Vk_user():
             if not user.outdated:
                 return user
 
-        params = {'user_ids':user_id, 'fields':'photo_200'}
+        params = {'user_ids':user_id, 'fields':'photo_400_orig'}
         return Vk_user.from_api(token, params)

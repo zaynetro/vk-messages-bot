@@ -55,14 +55,18 @@ class _Message():
 
     @staticmethod
     def NEW_MESSAGE(sender, text):
-        return sender + ': ' + text
+        return '*' + sender + ':* ' + text
 
     @staticmethod
     def WHOAMI(name):
         return 'You are ' + name
 
-    @constant
-    def TYPE_MESSAGE():
-        return 'Type your message:'
+    @staticmethod
+    def TYPE_MESSAGE(name):
+        return 'Type message to *' + name + '* (or /details):'
+
+    @staticmethod
+    def USER_NAME(name):
+        return '*Name:* ' + name
 
 message = _Message()

@@ -4,7 +4,6 @@ from vk_user import Vk_user
 from db import db
 import re
 from constants import action
-from telegram import ReplyKeyboardMarkup
 
 """
 Bot client
@@ -42,8 +41,8 @@ class Client:
             if user != None:
                 self.vk_user = user
 
-    def reply_markup(self):
-        return [[user.get_name()]
+    def keyboard_markup(self):
+        return [['/pick ' + user.get_name()]
                 for user in self.interacted_with
                 if not user.should_fetch()]
 
