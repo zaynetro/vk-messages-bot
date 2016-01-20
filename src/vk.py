@@ -1,5 +1,4 @@
 import string
-import pickledb
 import requests
 from collections import namedtuple
 

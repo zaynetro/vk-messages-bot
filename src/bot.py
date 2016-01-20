@@ -5,7 +5,7 @@ from telegram import Updater, ParseMode, ReplyKeyboardHide, ReplyKeyboardMarkup
 import logging
 from client import Client
 from telegram.dispatcher import run_async
-from db import db
+from db import close as db_close
 from poller import Poller
 
 # Enable logging
@@ -31,6 +31,7 @@ class Bot:
         self.updater.idle()
         self.poller.stop()
         self.persist()
+        db_close()
 
     def persist(self):
         for _, client in self.clients.items():

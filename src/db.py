@@ -2,6 +2,10 @@
 Global db object
 """
 
-import pickledb
+import shelve
 
-db = pickledb.load('example.db', False)
+db = shelve.open('example.db', writeback=True)
+
+def close():
+    db.sync()
+    db.close()

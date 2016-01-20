@@ -28,8 +28,8 @@ class Client:
         return 'Client-' + str(self.chat_id)
 
     def persist(self):
-        db.set(self.db_key(), self.to_json())
-        db.dump()
+        db[self.db_key()] = self.to_json()
+        db.sync()
 
     def seen_now(self):
         self.last_seen = time.time()
@@ -71,13 +71,12 @@ class Client:
 
     @staticmethod
     def all_from_db():
-        all = db.getall()
         clients = dict()
-        for client_key in all:
+        for client_key in db:
             if not re.match('Client-.+', client_key):
                 continue
 
-            client_json = db.get(client_key)
+            client_json = db[client_key]
             client = Client.from_json(client_json)
             if client.vk_user.should_fetch():
                 client.load_vk_user(client.vk_token)

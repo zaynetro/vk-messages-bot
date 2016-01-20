@@ -65,7 +65,8 @@ class Vk_user():
             return Vk_user()
 
         user = Vk_user(**users[0])
-        db.set(user.db_key(), user.to_json())
+        db[user.db_key()] = user.to_json()
+        db.sync()
         return user
 
     @staticmethod
@@ -75,8 +76,8 @@ class Vk_user():
 
     @staticmethod
     def fetch_user(token, user_id):
-        user_json = db.get(Vk_user.DB_KEY(user_id))
-        if user_json != None:
+        key = Vk_user.DB_KEY(user_id)
+        if not key in db:
             user = Vk_user.from_json(user_json)
             if not user.outdated:
                 return user

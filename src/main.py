@@ -16,8 +16,8 @@ def main():
         print('Launched with arguments: ' + str(args))
         if args[0] == 'reset-db':
             print('Resetting db')
-            db.deldb()
-            db.dump()
+            db.clear()
+            db.sync()
 
     bot = Bot(token=telegram_token,
               vk_client_id=vk_client_id)
