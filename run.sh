@@ -1,10 +1,16 @@
 #!/bin/bash
 
-set -e
-
 # Runs the bot
 
 reset_db=$1
 
 source ./set_env.sh
-python src/main.py $reset_db
+
+executable="python"
+has_python3=`which python3`
+
+if [[ ! -z $has_python3 ]]; then
+  executable="python3"
+fi
+
+$executable src/main.py $reset_db
