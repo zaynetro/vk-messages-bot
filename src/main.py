@@ -13,9 +13,9 @@ def main():
 
     args = sys.argv[1:]
     if len(args) > 0:
-        print 'Launched with arguments: ' + str(args)
+        print('Launched with arguments: ' + str(args))
         if args[0] == 'reset-db':
-            print 'Resetting db'
+            print('Resetting db')
             db.deldb()
             db.dump()
 

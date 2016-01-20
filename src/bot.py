@@ -33,11 +33,11 @@ class Bot:
         self.persist()
 
     def persist(self):
-        for _, client in self.clients.iteritems():
+        for _, client in self.clients.items():
             client.persist()
 
     def restore(self):
-        for _, client in self.clients.iteritems():
+        for _, client in self.clients.items():
             self.add_poll_server(client)
 
     def reg_actions(self):
@@ -167,7 +167,7 @@ class Bot:
             resize_keyboard=True)
 
     def on_update(self, updates, server):
-        print str('Updates' + str(updates))
+        print(str('Updates' + str(updates)))
         for update in updates:
             self.process_update(update, server)
 

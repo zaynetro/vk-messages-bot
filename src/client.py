@@ -84,5 +84,5 @@ class Client:
 
             clients[client.chat_id] = client
 
-        print 'Restored clients from db: ' + str(clients)
+        print('Restored clients from db: ' + str(clients))
         return clients

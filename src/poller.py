@@ -23,16 +23,16 @@ class Poller():
         poll_thread.start()
 
     def _run(self):
-        print 'In _run'
+        print('In _run')
         while self.is_running:
             if not self.servers.empty():
                 server = self.servers.get()
                 server, updates = self.poll(server)
-                print 'Poll resulted in ' + str(server) + ', ' + str(updates)
+                print('Poll resulted in ' + str(server) + ', ' + str(updates))
                 self.add(server)
                 self.exec_cb(updates=updates, server=server)
 
-        print 'Exit _run'
+        print('Exit _run')
 
     def stop(self):
         self.is_running = False

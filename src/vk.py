@@ -32,7 +32,7 @@ class Vk():
             return None
 
         json = r.json()
-        print 'VK api response: ' + str(json)
+        print('VK api response: ' + str(json))
 
         if 'response' in json:
             return json['response']
