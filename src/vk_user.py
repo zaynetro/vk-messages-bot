@@ -77,8 +77,8 @@ class Vk_user():
     @staticmethod
     def fetch_user(token, user_id):
         key = Vk_user.DB_KEY(user_id)
-        if not key in db:
-            user = Vk_user.from_json(user_json)
+        if key in db:
+            user = Vk_user.from_json(db[key])
             if not user.outdated:
                 return user
 
