@@ -7,6 +7,7 @@ from client import Client
 from telegram.dispatcher import run_async
 from db import close as db_close
 from poller import Poller
+from urllib.parse import urlparse, parse_qs
 
 # Enable logging
 logging.basicConfig(
@@ -132,7 +133,13 @@ class Bot:
         self.echo(update.message.chat_id)
 
     def on_token_message(self, bot, update, client):
-        client.load_vk_user(update.message.text)
+        parseresult = urlparse(update.message.text)
+        if parseresult.scheme=='https':
+            parseparams = parse_qs(parseresult.fragment)
+            access_token = parseparams.get('access_token')[0]
+            client.load_vk_user(access_token)
+        else:
+            client.load_vk_user(update.message.text)
         name = client.vk_user.get_name()
         client.next_action = action.NOTHING
         self.add_poll_server(client)

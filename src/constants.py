@@ -37,7 +37,7 @@ class _Message():
 
     @constant
     def COPY_TOKEN():
-        return 'Now send generated access token from the url.'
+        return 'Now send generated access token from the URL or just send full URL from address bar.'
 
     @staticmethod
     def TOKEN_SAVED(name):
