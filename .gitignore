@@ -1,5 +1,8 @@
 # Ignore database files
 *.db
+*.db.bak
+*.db.dat
+*.db.dir
 
 # Ignore compiled python files
 *.pyc
