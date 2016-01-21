@@ -40,16 +40,21 @@ class Vk_chat():
 
         return 'Chat #' + self.id
 
-    def name_from(self, uid):
-       return next((u.get_name() + ' in '
-           for u in self.users
-           if u.uid == uid), '') + self.get_name()
+    def name_from(self, uid_str):
+        uid = int(float(uid_str))
+        return next((u.get_name() + ' in '
+            for u in self.users
+            if u.uid == uid), '') + self.get_name()
 
     def participants(self):
         return ', '.join([u.get_name() for u in self.users])
 
     def db_key(self):
         return Vk_chat.DB_KEY(self.id)
+
+    def persist(self):
+        db.set(self.db_key(), self.to_json())
+        db.sync()
 
     def outdated(self):
         one_week = 60*24*7
@@ -76,8 +81,7 @@ class Vk_chat():
             return Vk_chat()
 
         vk_chat = Vk_chat(**chat)
-        db.set(vk_chat.db_key(), vk_chat.to_json())
-        db.sync()
+        vk_chat.persist()
         return vk_chat
 
     @staticmethod
