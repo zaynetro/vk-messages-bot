@@ -73,5 +73,8 @@ class _Message():
     def UNPICK(name):
         return 'Enough *' + name + '* for today'
 
+    @constant
+    def FIRST_PICK_USER():
+        return 'Pick someone first'
 
 message = _Message()

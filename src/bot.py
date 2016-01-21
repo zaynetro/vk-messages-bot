@@ -105,6 +105,7 @@ class Bot:
                 text=message.UNPICK(client.next_recepient.get_name()),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=Bot.keyboard(client.keyboard_markup()))
+        client.next_recepient = None
 
     def details(self, bot, update):
         chat_id = update.message.chat_id
@@ -116,6 +117,9 @@ class Bot:
         client.seen_now()
         user = client.next_recepient
         if user == None:
+            bot.sendMessage(chat_id=chat_id,
+                    text=message.FIRST_PICK_USER,
+                    reply_markup=Bot.keyboard(client.keyboard_markup()))
             return
 
         if user.photo != None:
