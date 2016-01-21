@@ -153,12 +153,8 @@ class Bot:
 
     @run_async
     def add_poll_server(self, client):
-        if client.last_used_server != None:
-            self.poller.add(client.last_used_server)
-        else:
-            server = Vk.get_long_poll_server(token=client.vk_token,
-                                             chat_id=client.chat_id)
-            self.poller.add(server)
+        if client.vk_token != None:
+            self.poller.add(client)
 
     def echo(self, chat_id):
         self.updater.bot.sendMessage(chat_id=chat_id, text=message.ECHO)
@@ -174,26 +170,20 @@ class Bot:
             selective=True,
             resize_keyboard=True)
 
-    def on_update(self, updates, server):
+    def on_update(self, updates, client):
         print(str('Updates' + str(updates)))
         for update in updates:
-            self.process_update(update, server)
+            self.process_update(update, client)
 
-    def process_update(self, update, server):
+    def process_update(self, update, client):
         if len(update) == 0:
             return
 
         if update[0] == 4:
             # When new message received
-            self.receive_vk_message(update, server)
+            self.receive_vk_message(update, client)
 
-    def receive_vk_message(self, update, server):
-        chat_id = server.chat_id
-        if not chat_id in self.clients:
-            return
-
-        client = self.clients[chat_id]
-        client.last_used_server = server
+    def receive_vk_message(self, update, client):
         flags = update[2]
         from_id = update[3]
         text = update[6]
@@ -203,7 +193,8 @@ class Bot:
 
         user = Vk_user.fetch_user(client.vk_token, from_id)
         client.add_interaction_with(user)
-        self.updater.bot.sendMessage(chat_id=chat_id,
+        self.updater.bot.sendMessage(chat_id=client.chat_id,
                 text=message.NEW_MESSAGE(user.get_name(), text),
                 reply_markup=Bot.keyboard(client.keyboard_markup()),
                 parse_mode=ParseMode.MARKDOWN)
+        client.persist()

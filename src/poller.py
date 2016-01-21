@@ -3,15 +3,14 @@ Poller class (long polls vk api for new message events)
 """
 
 from threading import Thread
-import requests
 from queue import Queue
-from vk import LongPollServer
+from vk import Vk
 from telegram.dispatcher import run_async
 
 class Poller():
     def __init__(self):
         self.is_running = False
-        self.servers = Queue()
+        self.clients = Queue()
         self.cb = Poller.noop
 
     def async_run(self, cb):
@@ -25,12 +24,16 @@ class Poller():
     def _run(self):
         print('In _run')
         while self.is_running:
-            if not self.servers.empty():
-                server = self.servers.get()
-                server, updates = self.poll(server)
-                print('Poll resulted in ' + str(server) + ', ' + str(updates))
-                self.add(server)
-                self.exec_cb(updates=updates, server=server)
+            if not self.clients.empty():
+                client = self.clients.get()
+                updates = Vk.poll(client)
+                if updates == None:
+                    print("Updates are none")
+                    continue
+
+                client.persist()
+                self.add(client)
+                self.exec_cb(updates=updates, client=client)
 
         print('Exit _run')
 
@@ -38,29 +41,21 @@ class Poller():
         self.is_running = False
 
     @run_async
-    def exec_cb(self, updates, server):
-        self.cb(updates=updates, server=server)
+    def exec_cb(self, updates, client):
+        self.cb(updates=updates, client=client)
 
     @staticmethod
     def noop():
         pass
 
-    def add(self, server):
-        if server == None:
-            return
+    def add(self, client):
+        if client.next_server == None:
+            # TODO: fetch next poll server
+            next_server = Vk.get_long_poll_server(token=client.vk_token,
+                    chat_id=client.chat_id)
+            if next_server == None:
+                return
 
-        self.servers.put(server)
+            client.next_server = next_server
 
-    def poll(self, server):
-        server, key, ts, chat_id = server
-        url = 'http://' + server
-        params = {'key':key, 'ts':ts, 'wait': 25, 'act':'a_check', 'mode':2}
-        r = requests.get(url, params=params)
-        if r.status_code != requests.codes.ok:
-            return None
-
-        json = r.json()
-        if 'failed' in json:
-            return None
-
-        return LongPollServer(server, key, json['ts'], chat_id), json['updates']
+        self.clients.put(client)

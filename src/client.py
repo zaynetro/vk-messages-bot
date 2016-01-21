@@ -20,7 +20,7 @@ class Client:
         self.chat_id = chat_id
         self.vk_user = Vk_user()
         self.vk_token = None
-        self.last_used_server = None
+        self.next_server = None
         self.interacted_with = set()
         self.next_recepient = None
 

@@ -51,3 +51,42 @@ class Vk():
 
         return LongPollServer(server['server'], server['key'],
                               server['ts'], chat_id)
+
+    @staticmethod
+    def poll(client, retry=True):
+        server, key, ts, chat_id = client.next_server
+        url = 'http://' + server
+        params = {'key':key, 'ts':ts, 'wait': 25, 'act':'a_check', 'mode':2}
+        r = requests.get(url, params=params)
+        if r.status_code != requests.codes.ok:
+            return None
+            next_server = Vk.get_long_poll_server(token=client.vk_token,
+                    chat_id=client.chat_id)
+            if next_server == None:
+                return None
+
+            client.next_server = next_server
+            if retry:
+                return Vk.poll(client, retry=False)
+            else:
+                return None
+
+        json = r.json()
+        print("Poll results: " + str(json))
+        if 'failed' in json:
+            return None
+            next_server = Vk.get_long_poll_server(token=client.vk_token,
+                    chat_id=client.chat_id)
+            if next_server == None:
+                return None
+
+            client.next_server = next_server
+            if retry:
+                return Vk.poll(client, retry=False)
+            else:
+                return None
+
+        next_server = LongPollServer(server, key, json['ts'], chat_id)
+        client.next_server = next_server
+        return json['updates']
+
