@@ -69,4 +69,9 @@ class _Message():
     def USER_NAME(name):
         return '*Name:* ' + name
 
+    @staticmethod
+    def UNPICK(name):
+        return 'Enough *' + name + '* for today'
+
+
 message = _Message()

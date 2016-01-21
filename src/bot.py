@@ -47,6 +47,7 @@ class Bot:
         dispatcher.addTelegramCommandHandler('start', self.start)
         dispatcher.addTelegramCommandHandler('whoami', self.whoami)
         dispatcher.addTelegramCommandHandler('pick', self.pick)
+        dispatcher.addTelegramCommandHandler('unpick', self.unpick)
         dispatcher.addTelegramCommandHandler('details', self.details)
         dispatcher.addErrorHandler(self.error)
         dispatcher.addUnknownTelegramCommandHandler(self.unknown)
@@ -84,13 +85,26 @@ class Bot:
 
         client = self.clients[chat_id]
         client.seen_now()
-        client.next_action = action.MESSAGE
         recepient = update.message.text[6:]
         client.expect_message_to(recepient)
         bot.sendMessage(chat_id=chat_id,
                 text=message.TYPE_MESSAGE(recepient),
                 parse_mode=ParseMode.MARKDOWN,
-                reply_markup=ReplyKeyboardHide())
+                reply_markup=Bot.keyboard(client.keyboard_markup()))
+
+    def unpick(self, bot, update):
+        chat_id = update.message.chat_id
+        if not chat_id in self.clients:
+            self.start(bot, update)
+            return
+
+        client = self.clients[chat_id]
+        client.next_action = action.NOTHING
+        client.persist()
+        bot.sendMessage(chat_id=chat_id,
+                text=message.UNPICK(client.next_recepient.get_name()),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=Bot.keyboard(client.keyboard_markup()))
 
     def details(self, bot, update):
         chat_id = update.message.chat_id
@@ -100,7 +114,6 @@ class Bot:
 
         client = self.clients[chat_id]
         client.seen_now()
-        client.next_action = action.NOTHING
         user = client.next_recepient
         if user == None:
             return
@@ -148,7 +161,6 @@ class Bot:
                 reply_markup=Bot.keyboard(client.keyboard_markup()))
 
     def on_typed_message(self, bot, update, client):
-        client.next_action = action.NOTHING
         client.send_message(update.message.text)
 
     @run_async

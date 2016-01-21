@@ -28,6 +28,7 @@ class Client:
         return 'Client-' + str(self.chat_id)
 
     def persist(self):
+        self.seen_now()
         db[self.db_key()] = self.to_json()
         db.sync()
 
@@ -42,13 +43,23 @@ class Client:
                 self.vk_user = user
 
     def keyboard_markup(self):
+        if self.next_action == action.MESSAGE:
+            return self.picked_keyboard()
+
         return [['/pick ' + user.get_name()]
                 for user in self.interacted_with
                 if not user.should_fetch()]
 
+    def picked_keyboard(self):
+        return [['/unpick ' + self.next_recepient.get_name()],
+                ['/details']]
+
     def expect_message_to(self, to_name):
         self.next_recepient = next((u for u in self.interacted_with
                                     if u.get_name() == to_name), None)
+        if self.next_recepient != None:
+            self.next_action = action.MESSAGE
+        self.persist()
 
     def send_message(self, text):
         if self.next_recepient == None:
