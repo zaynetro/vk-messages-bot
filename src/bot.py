@@ -5,7 +5,7 @@ from telegram import Updater, ParseMode, ReplyKeyboardHide, ReplyKeyboardMarkup
 import logging
 from client import Client
 from telegram.dispatcher import run_async
-from db import close as db_close
+import db
 from poller import Poller
 from urllib.parse import urlparse, parse_qs
 
@@ -32,7 +32,7 @@ class Bot:
         self.updater.idle()
         self.poller.stop()
         self.persist()
-        db_close()
+        db.close()
 
     def persist(self):
         for _, client in self.clients.items():
@@ -187,7 +187,6 @@ class Bot:
             resize_keyboard=True)
 
     def on_update(self, updates, client):
-        print(str('Updates' + str(updates)))
         for update in updates:
             self.process_update(update, client)
 

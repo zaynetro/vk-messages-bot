@@ -1,5 +1,5 @@
 from vk import Vk
-from db import db
+import db
 import time
 import jsonpickle
 
@@ -65,7 +65,7 @@ class Vk_user():
             return Vk_user()
 
         user = Vk_user(**users[0])
-        db[user.db_key()] = user.to_json()
+        db.set(user.db_key(), user.to_json())
         db.sync()
         return user
 
@@ -77,8 +77,8 @@ class Vk_user():
     @staticmethod
     def fetch_user(token, user_id):
         key = Vk_user.DB_KEY(user_id)
-        if key in db:
-            user = Vk_user.from_json(db[key])
+        if key in db.dict():
+            user = Vk_user.from_json(db.get(key))
             if not user.outdated:
                 return user
 

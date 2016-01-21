@@ -1,7 +1,7 @@
 import time
 import jsonpickle
 from vk_user import Vk_user
-from db import db
+import db
 import re
 from constants import action
 
@@ -29,7 +29,7 @@ class Client:
 
     def persist(self):
         self.seen_now()
-        db[self.db_key()] = self.to_json()
+        db.set(self.db_key(), self.to_json())
         db.sync()
 
     def seen_now(self):
@@ -83,11 +83,11 @@ class Client:
     @staticmethod
     def all_from_db():
         clients = dict()
-        for client_key in db:
+        for client_key in db.dict():
             if not re.match('Client-.+', client_key):
                 continue
 
-            client_json = db[client_key]
+            client_json = db.get(client_key)
             client = Client.from_json(client_json)
             if client.vk_user.should_fetch():
                 client.load_vk_user(client.vk_token)
