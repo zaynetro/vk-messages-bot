@@ -17,7 +17,7 @@ class Vk_chat():
         self.admin_id = admin_id
         self.photo = None
         self.created_at = created_at
-        self.users = [Vk_user(u) for u in users]
+        self.users = [Vk_user(**u) for u in users]
         for u in self.users:
             u.persist()
 

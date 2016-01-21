@@ -10,6 +10,8 @@ Vk user
 class Vk_user():
     def __init__(self,
                  uid=None,
+                 type='',
+                 invited_by=0,
                  first_name='Unresolved',
                  last_name='Name',
                  deactivated=None,
