@@ -12,6 +12,7 @@ class Vk_user():
                  uid=None,
                  first_name='Unresolved',
                  last_name='Name',
+                 deactivated=None,
                  photo_400_orig=None,
                  created_at=time.time()):
 
