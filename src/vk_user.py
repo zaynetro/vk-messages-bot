@@ -35,11 +35,21 @@ class Vk_user():
     def DB_KEY(uid):
         return 'VK-USER-' + str(uid)
 
+    def empty(self):
+        return self.uid == None
+
+    def participants(self):
+        return None
+
     def should_fetch(self):
         return self.uid == None or self.outdated()
 
     def get_name(self):
         return self.first_name + ' ' + self.last_name
+
+    def persist(self):
+        db.set(self.db_key(), self.to_json())
+        db.sync()
 
     def send_message(self, token, message):
         params = {'user_id': self.uid, 'message':message}
@@ -66,8 +76,7 @@ class Vk_user():
             return Vk_user()
 
         user = Vk_user(**users[0])
-        db.set(user.db_key(), user.to_json())
-        db.sync()
+        user.persist()
         return user
 
     @staticmethod
@@ -80,7 +89,7 @@ class Vk_user():
         key = Vk_user.DB_KEY(user_id)
         if key in db.dict():
             user = Vk_user.from_json(db.get(key))
-            if not user.outdated:
+            if not user.outdated():
                 return user
 
         params = {'user_ids':user_id, 'fields':'photo_400_orig'}

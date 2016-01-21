@@ -77,4 +77,8 @@ class _Message():
     def FIRST_PICK_USER():
         return 'Pick someone first'
 
+    @staticmethod
+    def PARTICIPANTS(participants):
+        return '*In chat:* ' + participants
+
 message = _Message()

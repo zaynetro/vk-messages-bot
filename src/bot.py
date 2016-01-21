@@ -1,5 +1,6 @@
 from vk import Vk
 from vk_user import Vk_user
+from vk_chat import Vk_chat
 from constants import action, message
 from telegram import Updater, ParseMode, ReplyKeyboardHide, ReplyKeyboardMarkup
 import logging
@@ -130,6 +131,15 @@ class Bot:
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=Bot.keyboard(client.keyboard_markup()))
 
+        participants = user.participants()
+        if participants != None:
+            bot.sendMessage(chat_id=chat_id,
+                    text=message.PARTICIPANTS(participants),
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=Bot.keyboard(client.keyboard_markup()))
+
+
+
     def error(self, bot, update, error):
         logger.warn('Update "%s" caused error "%s"' % (update, error))
 
@@ -202,14 +212,27 @@ class Bot:
         flags = update[2]
         from_id = update[3]
         text = update[6]
+        attachments = update[7]
+
         if flags & 2 == 2:
             # Skip when message is outgoing
             return
 
-        user = Vk_user.fetch_user(client.vk_token, from_id)
-        client.add_interaction_with(user)
+        from_name = ''
+
+        if from_id & 2000000000 == 2000000000:
+            # Message came from chat
+            chat_id = from_id - 2000000000
+            chat = Vk_chat.fetch(client.vk_token, chat_id)
+            from_name = chat.name_from(attachments['from'])
+            client.add_interaction_with(chat)
+        else:
+            user = Vk_user.fetch_user(client.vk_token, from_id)
+            from_name = user.get_name()
+            client.add_interaction_with(user)
+
         self.updater.bot.sendMessage(chat_id=client.chat_id,
-                text=message.NEW_MESSAGE(user.get_name(), text),
+                text=message.NEW_MESSAGE(from_name, text),
                 reply_markup=Bot.keyboard(client.keyboard_markup()),
                 parse_mode=ParseMode.MARKDOWN)
         client.persist()

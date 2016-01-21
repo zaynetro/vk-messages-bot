@@ -21,7 +21,7 @@ class Client:
         self.vk_user = Vk_user()
         self.vk_token = None
         self.next_server = None
-        self.interacted_with = set()
+        self.interacted_with = set() # set of chats or users
         self.next_recepient = None
 
     def db_key(self):
@@ -68,7 +68,7 @@ class Client:
         self.next_recepient.send_message(self.vk_token, text)
 
     def add_interaction_with(self, user):
-        if user.uid == None:
+        if user.empty():
             return
 
         self.interacted_with.add(user)
