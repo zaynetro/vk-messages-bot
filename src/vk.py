@@ -59,7 +59,6 @@ class Vk():
         params = {'key':key, 'ts':ts, 'wait': 25, 'act':'a_check', 'mode':2}
         r = requests.get(url, params=params)
         if r.status_code != requests.codes.ok:
-            return None
             next_server = Vk.get_long_poll_server(token=client.vk_token,
                     chat_id=client.chat_id)
             if next_server == None:
@@ -74,7 +73,6 @@ class Vk():
         json = r.json()
         print("Poll results: " + str(json))
         if 'failed' in json:
-            return None
             next_server = Vk.get_long_poll_server(token=client.vk_token,
                     chat_id=client.chat_id)
             if next_server == None:
