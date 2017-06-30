@@ -9,6 +9,7 @@ def constant(f):
 
     return property(fget, fset)
 
+
 class _Action():
     @constant
     def NOTHING():
@@ -26,7 +27,9 @@ class _Action():
     def MESSAGE():
         return 'MESSAGE'
 
+
 action = _Action()
+
 
 class _Message():
     @staticmethod
@@ -42,7 +45,7 @@ class _Message():
     @staticmethod
     def TOKEN_SAVED(name):
         return ('Hey, ' + name + '! Your token was saved! '
-                'Now you will start receiving messages.')
+                                 'Now you will start receiving messages.')
 
     @constant
     def ECHO():
@@ -80,5 +83,6 @@ class _Message():
     @staticmethod
     def PARTICIPANTS(participants):
         return '*In chat:* ' + participants
+
 
 message = _Message()

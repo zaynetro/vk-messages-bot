@@ -1,13 +1,16 @@
-import time
-import jsonpickle
-from vk_user import Vk_user
-import db
 import re
-from constants import action
+import time
+
+import jsonpickle
+
+from vk_messages_bot import db
+from vk_messages_bot.constants import action
+from vk_messages_bot.vk_user import Vk_user
 
 """
 Bot client
 """
+
 
 class Client:
     def __init__(self,
@@ -21,7 +24,7 @@ class Client:
         self.vk_user = Vk_user()
         self.vk_token = None
         self.next_server = None
-        self.interacted_with = set() # set of chats or users
+        self.interacted_with = set()  # set of chats or users
         self.next_recepient = None
 
     def db_key(self):

@@ -1,0 +1,4 @@
+whoami - Print info about myself
+pick - Followed by [user name], selects user for next message
+unpick - Unselect picked user (no need to specify a name)
+details - Print info about selected user

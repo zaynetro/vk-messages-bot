@@ -1,8 +1,10 @@
 import string
-import requests
 from collections import namedtuple
 
+import requests
+
 LongPollServer = namedtuple('LongPollServer', 'server key ts chat_id')
+
 
 class Vk():
     def __init__(self, client_id):
@@ -11,12 +13,12 @@ class Vk():
     @staticmethod
     def AUTH_URL(params):
         return string.Template(
-                'https://oauth.vk.com/authorize'
-                '?client_id=$client_id'
-                '&display=page'
-                '&scope=messages,offline'
-                '&response_type=token'
-                '&v=5.44').substitute(params)
+            'https://oauth.vk.com/authorize'
+            '?client_id=$client_id'
+            '&display=page'
+            '&scope=messages,offline'
+            '&response_type=token'
+            '&v=5.44').substitute(params)
 
     @staticmethod
     def API_URL(method):
@@ -39,7 +41,7 @@ class Vk():
         return None
 
     def get_auth_url(self):
-        params = { 'client_id':self._client_id }
+        params = {'client_id': self._client_id}
         return Vk.AUTH_URL(params)
 
     @staticmethod
@@ -56,11 +58,11 @@ class Vk():
     def poll(client, retry=True):
         server, key, ts, chat_id = client.next_server
         url = 'http://' + server
-        params = {'key':key, 'ts':ts, 'wait': 25, 'act':'a_check', 'mode':2}
+        params = {'key': key, 'ts': ts, 'wait': 25, 'act': 'a_check', 'mode': 2}
         r = requests.get(url, params=params)
         if r.status_code != requests.codes.ok:
             next_server = Vk.get_long_poll_server(token=client.vk_token,
-                    chat_id=client.chat_id)
+                                                  chat_id=client.chat_id)
             if next_server == None:
                 return None
 
@@ -74,7 +76,7 @@ class Vk():
         print("Poll results: " + str(json))
         if 'failed' in json:
             next_server = Vk.get_long_poll_server(token=client.vk_token,
-                    chat_id=client.chat_id)
+                                                  chat_id=client.chat_id)
             if next_server == None:
                 return None
 
@@ -87,4 +89,3 @@ class Vk():
         next_server = LongPollServer(server, key, json['ts'], chat_id)
         client.next_server = next_server
         return json['updates']
-

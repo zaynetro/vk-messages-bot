@@ -1,0 +1,39 @@
+{
+    "name": "vk-messages-bot",
+    "description": "Telegram Bot that lets you receive messages from VK and reply to them",
+    "repository": "https://github.com/zaynetro/vk-messages-bot",
+    "logo": "https://raw.githubusercontent.com/zaynetro/vk-messages-bot/master/telegram_settings/setuserpic.png",
+    "keywords": ["vk", "vkontakte", "messages", "messenger", "telegram", "forward", "bot"],
+    "buildpacks": [
+        {
+          "url": "heroku/python"
+        }
+    ],
+    "env": {
+        "TG_BOT_TOKEN": {
+            "description": "Telegram Bot API Token",
+            "required": true
+        },
+        "VK_CLIENT_ID": {
+            "description": "VK App Client ID",
+            "required": true
+        },
+        "USE_WEBHOOK": {
+            "description": "Use webhook for bot updates: 1, use polling: 0",
+            "value": "0",
+            "required": false
+        },
+        "APP_URL": {
+            "description": "Heroku App URL like `https://<appname>.herokuapp.com/`, required for webhook",
+            "required": false
+        }
+    },
+    "formation": {
+        "web": {
+            "quantity": 0
+        },
+        "worker": {
+            "quantity": 1
+        }
+    }
+}

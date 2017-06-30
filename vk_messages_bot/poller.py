@@ -2,10 +2,13 @@
 Poller class (long polls vk api for new message events)
 """
 
-from threading import Thread
 from queue import Queue
-from vk import Vk
-from telegram.dispatcher import run_async
+from threading import Thread
+
+from telegram.ext.dispatcher import run_async
+
+from vk_messages_bot.vk import Vk
+
 
 class Poller():
     def __init__(self):
@@ -52,7 +55,7 @@ class Poller():
         if client.next_server == None:
             # TODO: fetch next poll server
             next_server = Vk.get_long_poll_server(token=client.vk_token,
-                    chat_id=client.chat_id)
+                                                  chat_id=client.chat_id)
             if next_server == None:
                 return
 

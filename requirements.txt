@@ -1,4 +1,4 @@
-jsonpickle==0.9.2
-python-telegram-bot==3.2.0
-requests==2.9.1
-simplejson==3.8.1
+python-telegram-bot==6.1.0
+requests==2.18.1
+simplejson==3.11.1
+jsonpickle==0.9.4

@@ -1,17 +1,20 @@
 import time
-import db
+
 import jsonpickle
-from vk import Vk
-from vk_user import Vk_user
+
+from vk_messages_bot import db
+from vk_messages_bot.vk import Vk
+from vk_messages_bot.vk_user import Vk_user
+
 
 class Vk_chat():
     def __init__(self,
-            chat_id=None,
-            title='',
-            type='',
-            admin_id=None,
-            users=[],
-            created_at=time.time()):
+                 chat_id=None,
+                 title='',
+                 type='',
+                 admin_id=None,
+                 users=[],
+                 created_at=time.time()):
         self.id = chat_id
         self.title = title
         self.admin_id = admin_id
@@ -43,8 +46,8 @@ class Vk_chat():
     def name_from(self, uid_str):
         uid = int(float(uid_str))
         return next((u.get_name() + ' in '
-            for u in self.users
-            if u.uid == uid), '') + self.get_name()
+                     for u in self.users
+                     if u.uid == uid), '') + self.get_name()
 
     def participants(self):
         return ', '.join([u.get_name() for u in self.users])
@@ -57,7 +60,7 @@ class Vk_chat():
         db.sync()
 
     def outdated(self):
-        one_week = 60*24*7
+        one_week = 60 * 24 * 7
         return self.created_at < time.time() - one_week
 
     def should_fetch(self):
@@ -67,7 +70,7 @@ class Vk_chat():
         return jsonpickle.encode(self)
 
     def send_message(self, token, message):
-        params = {'chat_id': self.id, 'message':message}
+        params = {'chat_id': self.id, 'message': message}
         message_id = Vk.api('messages.send', token, params)
 
     @staticmethod
@@ -92,8 +95,6 @@ class Vk_chat():
             if not chat.outdated():
                 return chat
 
-        params = {'chat_id':chat_id,
-                'fields':'first_name, last_name, photo_400_orig'}
+        params = {'chat_id': chat_id,
+                  'fields': 'first_name, last_name, photo_400_orig'}
         return Vk_chat.from_api(token, params)
-
-

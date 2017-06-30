@@ -1,11 +1,14 @@
-from vk import Vk
-import db
 import time
+
 import jsonpickle
 
+from vk_messages_bot import db
+from vk_messages_bot.vk import Vk
+
 """
-Vk user
+VK User
 """
+
 
 class Vk_user():
     def __init__(self,
@@ -54,11 +57,11 @@ class Vk_user():
         db.sync()
 
     def send_message(self, token, message):
-        params = {'user_id': self.uid, 'message':message}
+        params = {'user_id': self.uid, 'message': message}
         message_id = Vk.api('messages.send', token, params)
 
     def outdated(self):
-        one_week = 60*24*7
+        one_week = 60 * 24 * 7
         return self.created_at < time.time() - one_week
 
     def to_json(self):
@@ -83,7 +86,7 @@ class Vk_user():
 
     @staticmethod
     def fetch_current_user(token):
-        params = {'fields':'photo_400_orig'}
+        params = {'fields': 'photo_400_orig'}
         return Vk_user.from_api(token, params)
 
     @staticmethod
@@ -94,5 +97,5 @@ class Vk_user():
             if not user.outdated():
                 return user
 
-        params = {'user_ids':user_id, 'fields':'photo_400_orig'}
+        params = {'user_ids': user_id, 'fields': 'photo_400_orig'}
         return Vk_user.from_api(token, params)
