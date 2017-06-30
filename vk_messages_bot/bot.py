@@ -1,6 +1,4 @@
 import logging
-import os
-from logging.handlers import SysLogHandler
 from urllib.parse import urlparse, parse_qs, urljoin
 
 from telegram import ParseMode, ReplyKeyboardHide, ReplyKeyboardMarkup
@@ -15,20 +13,6 @@ from vk_messages_bot.vk import Vk
 from vk_messages_bot.vk_chat import Vk_chat
 from vk_messages_bot.vk_user import Vk_user
 
-# http://help.papertrailapp.com/kb/configuration/configuring-centralized-logging-from-python-apps/
-console_handler = logging.StreamHandler()
-handlers = [console_handler]
-
-SYSLOG_ADDRESS = os.getenv('SYSLOG_ADDRESS', '')
-if SYSLOG_ADDRESS:
-    syslog_hostname, syslog_udp_port = SYSLOG_ADDRESS.split(":")
-    syslog_udp_port = int(syslog_udp_port)
-    syslog_handler = SysLogHandler(address=(syslog_hostname, syslog_udp_port))
-    handlers.append(syslog_handler)
-
-logging.basicConfig(format='%(asctime)s {} %(name)s: %(message)s'.format(os.getenv("HOSTNAME", "unknown_host")),
-                    datefmt='%b %d %H:%M:%S',
-                    level=logging.DEBUG, handlers=handlers)
 logger = logging.getLogger(__name__)
 
 

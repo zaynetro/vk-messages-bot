@@ -1,11 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 import sys
+from logging.handlers import SysLogHandler
 
 from vk_messages_bot.bot import Bot
 from vk_messages_bot.db import db
+
+console_handler = logging.StreamHandler()
+handlers = [console_handler]
+
+SYSLOG_ADDRESS = os.getenv('SYSLOG_ADDRESS', '')
+if SYSLOG_ADDRESS:
+    syslog_hostname, syslog_udp_port = SYSLOG_ADDRESS.split(":")
+    syslog_udp_port = int(syslog_udp_port)
+    syslog_handler = SysLogHandler(address=(syslog_hostname, syslog_udp_port))
+    handlers.append(syslog_handler)
+
+logging.basicConfig(format='%(asctime)s {} %(name)s: %(message)s'.format(os.getenv("HOSTNAME", "unknown_host")),
+                    datefmt='%b %d %H:%M:%S',
+                    level=logging.DEBUG, handlers=handlers)
+
+logger = logging.getLogger(__name__)
 
 
 def main():
