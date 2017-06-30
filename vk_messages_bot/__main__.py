@@ -41,7 +41,7 @@ def main():
             db.sync()
 
     bot = Bot(tg_bot_token, vk_client_id)
-    bot.run(use_webhook, app_url, app_port)
+    bot.start(use_webhook, app_url, app_port)
 
 
 if __name__ == '__main__':

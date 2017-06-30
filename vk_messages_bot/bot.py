@@ -46,7 +46,7 @@ class Bot:
 
         self.restore()
 
-    def run(self, use_webhook=False, app_url=None, app_port=None):
+    def start(self, use_webhook=False, app_url=None, app_port=None):
         self.poller.async_run(self.on_update)
 
         if use_webhook:
@@ -156,6 +156,10 @@ class Bot:
                             parse_mode=ParseMode.MARKDOWN,
                             reply_markup=Bot.keyboard(client.keyboard_markup()))
 
+    def unknown_command_callback(self, bot, update):
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text=message.UNKNOWN)
+
     def error_callback(self, bot, update, error):
         try:
             raise error
@@ -219,10 +223,6 @@ class Bot:
 
     def echo(self, chat_id):
         self.updater.bot.sendMessage(chat_id=chat_id, text=message.ECHO)
-
-    def unknown_command_callback(self, bot, update):
-        bot.sendMessage(chat_id=update.message.chat_id,
-                        text=message.UNKNOWN)
 
     @staticmethod
     def keyboard(keyboard_markup):
