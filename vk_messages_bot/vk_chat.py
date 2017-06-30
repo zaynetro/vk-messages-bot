@@ -14,7 +14,8 @@ class Vk_chat():
                  type='',
                  admin_id=None,
                  users=[],
-                 created_at=time.time()):
+                 created_at=time.time(),
+                 **kwargs):
         self.id = chat_id
         self.title = title
         self.admin_id = admin_id

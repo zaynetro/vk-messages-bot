@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 class Bot:
     def __init__(self, tg_bot_token, vk_client_id):
+        self.tg_bot_token = tg_bot_token
         self.poller = Poller()
         self.updater = Updater(token=tg_bot_token)
         self.vk = Vk(vk_client_id)
@@ -42,7 +43,7 @@ class Bot:
         self.reg_actions()
         self.restore()
 
-    def run(self, use_webhook=False, app_port=None, app_url=None):
+    def run(self, use_webhook=False, app_url=None, app_port=None):
         self.poller.async_run(self.on_update)
 
         if use_webhook:
