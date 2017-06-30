@@ -2,7 +2,9 @@ import logging
 from urllib.parse import urlparse, parse_qs, urljoin
 
 from telegram import ParseMode, ReplyKeyboardHide, ReplyKeyboardMarkup
-from telegram.ext import Updater
+from telegram.error import (TelegramError, Unauthorized, BadRequest,
+                            TimedOut, ChatMigrated, NetworkError)
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram.ext.dispatcher import run_async
 
 from vk_messages_bot import db
@@ -20,11 +22,28 @@ class Bot:
     def __init__(self, tg_bot_token, vk_client_id):
         self.tg_bot_token = tg_bot_token
         self.poller = Poller()
-        self.updater = Updater(token=tg_bot_token)
         self.vk = Vk(vk_client_id)
         self.clients = Client.all_from_db()
 
-        self.reg_actions()
+        self.updater = Updater(token=tg_bot_token)
+        dispatcher = self.updater.dispatcher
+
+        start_command_handler = CommandHandler('start', self.start_command_callback)
+        dispatcher.add_handler(start_command_handler)
+        start_command_handler = CommandHandler('whoami', self.whoami_command_callback)
+        dispatcher.add_handler(start_command_handler)
+        start_command_handler = CommandHandler('pick', self.pick_command_callback)
+        dispatcher.add_handler(start_command_handler)
+        start_command_handler = CommandHandler('unpick', self.unpick_command_callback)
+        dispatcher.add_handler(start_command_handler)
+        start_command_handler = CommandHandler('details', self.details_command_callback)
+        dispatcher.add_handler(start_command_handler)
+        unknown_handler = MessageHandler(Filters.command, self.unknown_command_callback)
+        dispatcher.add_handler(unknown_handler)
+        message_handler = MessageHandler(Filters.text, self.message_callback)
+        dispatcher.add_handler(message_handler)
+        dispatcher.add_error_handler(self.error_callback)
+
         self.restore()
 
     def run(self, use_webhook=False, app_url=None, app_port=None):
@@ -52,18 +71,8 @@ class Bot:
         for _, client in self.clients.items():
             self.add_poll_server(client)
 
-    def reg_actions(self):
-        dispatcher = self.updater.dispatcher
-        dispatcher.addTelegramCommandHandler('start', self.start)
-        dispatcher.addTelegramCommandHandler('whoami', self.whoami)
-        dispatcher.addTelegramCommandHandler('pick', self.pick)
-        dispatcher.addTelegramCommandHandler('unpick', self.unpick)
-        dispatcher.addTelegramCommandHandler('details', self.details)
-        dispatcher.addErrorHandler(self.error)
-        dispatcher.addUnknownTelegramCommandHandler(self.unknown)
-        dispatcher.addTelegramMessageHandler(self.on_message)
 
-    def start(self, bot, update):
+    def start_command_callback(self, bot, update):
         chat_id = update.message.chat_id
         auth_url = self.vk.get_auth_url()
         # Send first info messages
@@ -77,7 +86,7 @@ class Bot:
         self.clients[chat_id] = client
         client.persist()
 
-    def whoami(self, bot, update):
+    def whoami_command_callback(self, bot, update):
         chat_id = update.message.chat_id
         if not chat_id in self.clients:
             return
@@ -87,10 +96,10 @@ class Bot:
                         text=message.WHOAMI(client.vk_user.get_name()),
                         reply_markup=Bot.keyboard(client.keyboard_markup()))
 
-    def pick(self, bot, update):
+    def pick_command_callback(self, bot, update):
         chat_id = update.message.chat_id
         if not chat_id in self.clients:
-            self.start(bot, update)
+            self.start_command_callback(bot, update)
             return
 
         client = self.clients[chat_id]
@@ -102,10 +111,10 @@ class Bot:
                         parse_mode=ParseMode.MARKDOWN,
                         reply_markup=Bot.keyboard(client.keyboard_markup()))
 
-    def unpick(self, bot, update):
+    def unpick_command_callback(self, bot, update):
         chat_id = update.message.chat_id
         if not chat_id in self.clients:
-            self.start(bot, update)
+            self.start_command_callback(bot, update)
             return
 
         client = self.clients[chat_id]
@@ -117,10 +126,10 @@ class Bot:
                         reply_markup=Bot.keyboard(client.keyboard_markup()))
         client.next_recepient = None
 
-    def details(self, bot, update):
+    def details_command_callback(self, bot, update):
         chat_id = update.message.chat_id
         if not chat_id in self.clients:
-            self.start(bot, update)
+            self.start_command_callback(bot, update)
             return
 
         client = self.clients[chat_id]
@@ -147,14 +156,33 @@ class Bot:
                             parse_mode=ParseMode.MARKDOWN,
                             reply_markup=Bot.keyboard(client.keyboard_markup()))
 
-    def error(self, bot, update, error):
-        logger.warning('Update "%s" caused error "%s"' % (update, error))
+    def error_callback(self, bot, update, error):
+        try:
+            raise error
+        except Unauthorized:
+            # remove update.message.chat_id from conversation list
+            logger.debug('Update {} caused error {}'.format(update, error))
+        except BadRequest:
+            # handle malformed requests - read more below!
+            logger.debug('Update {} caused error {}'.format(update, error))
+        except TimedOut:
+            # handle slow connection problems
+            logger.debug('Update {} caused error {}'.format(update, error))
+        except NetworkError:
+            # handle other connection problems
+            logger.debug('Update {} caused error {}'.format(update, error))
+        except ChatMigrated as e:
+            # the chat_id of a group has changed, use e.new_chat_id instead
+            logger.debug('Update {} caused error {}'.format(update, error))
+        except TelegramError:
+            # handle all other telegram related errors
+            logger.debug('Update {} caused error {}'.format(update, error))
 
-    def on_message(self, bot, update):
+    def message_callback(self, bot, update):
         chat_id = update.message.chat_id
 
         if not chat_id in self.clients:
-            return self.start(bot, update)
+            return self.start_command_callback(bot, update)
 
         client = self.clients[chat_id]
         client.seen_now()
@@ -192,7 +220,7 @@ class Bot:
     def echo(self, chat_id):
         self.updater.bot.sendMessage(chat_id=chat_id, text=message.ECHO)
 
-    def unknown(self, bot, update):
+    def unknown_command_callback(self, bot, update):
         bot.sendMessage(chat_id=update.message.chat_id,
                         text=message.UNKNOWN)
 
