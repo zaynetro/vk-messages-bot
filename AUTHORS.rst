@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Roman Zaynetdinov <zaynetro@gmail.com>
+* Roman Zaynetdinov <hi@zaynetro.com>
 * George Pchelkin <george@pchelk.in>
 
 Contributors
